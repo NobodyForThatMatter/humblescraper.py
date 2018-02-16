@@ -2,12 +2,10 @@
 # -*- coding: utf-8 -*-
 import requests
 from bs4 import BeautifulSoup
-import json
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
 
-#TODO Make some pprint and get rid of JSON dump.
 #TODO Maybe check for time until bundle finishes, to grab new bundles on the go?
 
 def get_bundle_links():
@@ -24,6 +22,7 @@ def get_bundle_links():
         link = bundle.get_property("href")
         if link not in list_of_urls:
             list_of_urls.append(link)
+    browser.quit()
     return list_of_urls
 
 
@@ -35,23 +34,32 @@ def parse_bundles(url):
     soup = BeautifulSoup(response.text, "html.parser")
     tiers = soup.select(".dd-game-row")
     bundle_name = soup.title.string
-    tier_list=[bundle_name]
+    tier_list=[]
     for tier in tiers:
         if tier.select(".dd-header-headline"):
             tiername = tier.select(".dd-header-headline")[0].text.strip()
             products = tier.select(".dd-image-box-caption")
             productnames = [prodname.text.strip() for prodname in products]
-            # tier_dict[tiername] = {"products": productnames}
             tier_list.append({"Tier": tiername, "Products": productnames})
-    # return tier_dict
-    return tier_list
+    return tier_list, bundle_name
+
+def print_it(tier_list, name):
+    print("Bundle: ", name)
+    for i in tier_list:
+        print("\n")
+        print("\tTier: ", i["Tier"])
+        print("\n")
+        print("\tProducts: ")
+        for product in i["Products"]:
+            print("\t\t", product)
+        print("\n")
 
 def main():
     for bundle in get_bundle_links():
-        info = parse_bundles(bundle)
-        dump = json.dumps(info, indent=1, ensure_ascii=False)
-        print(dump)
+        info, name = parse_bundles(bundle)
+        print_it(info, name)
 
-if __name__== "__main__":
+
+if __name__ == '__main__':
     main()
 
