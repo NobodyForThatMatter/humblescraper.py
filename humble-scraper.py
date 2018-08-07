@@ -10,8 +10,8 @@ import json
 def get_bundle_links_and_end():
     list_of_bundles=[]
     request = requests.get("http://humblebundle.com")
-    mosaic_raw = re.findall("var mosaic =(.+?);\n", request.text, re.S)
-    mosaic_loaded = json.loads(mosaic_raw[0])
+    mosaic_raw = re.findall('(\[{.+?}]),\n', request.text, re.S)
+    mosaic_loaded = json.loads(mosaic_raw[1])
     for element in mosaic_loaded:
         if "products" in element:
             for product in element["products"]:
