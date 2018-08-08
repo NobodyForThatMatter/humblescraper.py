@@ -6,15 +6,18 @@ import re
 import json
 
 #TODO Program Python to execute this script when time to finish the bundle is up.
+def get_products_json():
+    request = requests.get("http://humblebundle.com")
+    product_tiles_raw = re.findall('(\[{.+?}]),\n', request.text, re.S)
+    product_tiles_loaded = json.loads(product_tiles_raw[1])
+    return product_tiles_loaded
 
 def get_bundle_links_and_end():
     list_of_bundles=[]
-    request = requests.get("http://humblebundle.com")
-    mosaic_raw = re.findall('(\[{.+?}]),\n', request.text, re.S)
-    mosaic_loaded = json.loads(mosaic_raw[1])
-    for element in mosaic_loaded:
-        if "products" in element:
-            for product in element["products"]:
+
+    for product_tile in get_products_json():
+        if "products" in product_tile:
+            for product in product_tile["products"]:
                 if product["type"] == "bundle":
                     bundle_url="http://humblebundle.com"+product["product_url"]
                     list_of_bundles.append({"url": bundle_url, "end": product["end_date"]})
