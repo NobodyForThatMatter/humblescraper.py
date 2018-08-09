@@ -5,22 +5,26 @@ from bs4 import BeautifulSoup
 import re
 import json
 
-#TODO Program Python to execute this script when time to finish the bundle is up.
-def get_products_json():
-    request = requests.get("http://humblebundle.com")
-    product_tiles_raw = re.findall('(\[{.+?}]),\n', request.text, re.S)
-    product_tiles_loaded = json.loads(product_tiles_raw[1])
-    return product_tiles_loaded
+#TODO Maybe scrape the bundle pages using the bundleVars JASON, but seems to be more convoluted than just getting elements by id there.
+
+#TODO Add write-to-file mode/option, sleep, check the file, if no new content found keep old file, else change content and send email.
+
+def get_json_from_api(url):
+    request = requests.get(url)
+    soup = BeautifulSoup(request.text, 'lxml')
+    json_raw = soup.find('script', id='webpack-json-data').text # Site-wide data, found both in main url and bundle urls.
+    json_loaded = json.loads(json_raw)
+    return json_loaded
+
 
 def get_bundle_links_and_end():
     list_of_bundles=[]
+    products = get_json_from_api("http://humblebundle.com")
 
-    for product_tile in get_products_json():
-        if "products" in product_tile:
-            for product in product_tile["products"]:
-                if product["type"] == "bundle":
-                    bundle_url="http://humblebundle.com"+product["product_url"]
-                    list_of_bundles.append({"url": bundle_url, "end": product["end_date"]})
+    for product in products["productTiles"][1:]: # Index 0 is monthly.
+        bundle_url="http://humblebundle.com/"+product["url"] # product_url adds a slash at the start, url doesn't.
+        list_of_bundles.append({"url": bundle_url, "end": product["tab_end"]})
+
     return list_of_bundles
 
 
@@ -62,4 +66,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
