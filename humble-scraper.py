@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import requests
 from bs4 import BeautifulSoup
-import re
 import json
+import argparse
 
 #TODO Maybe scrape the bundle pages using the bundleVars JASON, but seems to be more convoluted than just getting elements by id there.
 
-#TODO Add write-to-file mode/option, sleep, check the file, if no new content found keep old file, else change content and send email.
+#TODO Sleep, check the file, if no new content found keep old file, else change content and send email. Add argparse functionality (daemon/writer  mode).
 
 def get_json_from_api(url):
     request = requests.get(url)
@@ -42,6 +42,21 @@ def parse_bundles(url):
             tier_list.append({"Tier": tiername, "Products": productnames})
     return tier_list, bundle_name
 
+def write_it(file, tier_list, name, bundle_end):
+
+    file.write("\nBUNDLE: "+ name)
+    file.write("\nBUNDLE ENDS: " + bundle_end)
+    for i in tier_list:
+        file.write("\n")
+        file.write("-"*75+"\n")
+        file.write("\tTier: " + i["Tier"] + "\n")
+        file.write("="*75 + "\n")
+        file.write("\n")
+        file.write("\tProducts: "+"\n")
+        for product in i["Products"]:
+            file.write("\t\t" + product + "\n")
+
+
 def print_it(tier_list, name, bundle_end):
     print("\nBUNDLE: ", name)
     print("\nBUNDLE ENDS: ", bundle_end)
@@ -57,12 +72,19 @@ def print_it(tier_list, name, bundle_end):
         print("\n")
 
 def main():
+
     for bundle in get_bundle_links_and_end():
         bundle_end = bundle["end"]
         info, name = parse_bundles(bundle["url"])
-        print("*"*75)
+        print("*"*75+"\n")
         print_it(info,name,bundle_end)
-        print("*"*75)
+        print("*"*75+"\n")
+
+        with open('bundles.txt', 'a') as file:
+            file.write("*"*75+"\n"*5)
+            write_it(file, info, name, bundle_end)
+            file.write("*"*75)
+            file.write("\n"*5)
 
 if __name__ == '__main__':
     main()
