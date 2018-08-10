@@ -1,13 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import requests
+import filecmp
 from bs4 import BeautifulSoup
 import json
 import argparse
 
-#TODO Maybe scrape the bundle pages using the bundleVars JASON, but seems to be more convoluted than just getting elements by id there.
+#TODO Maybe scrape the bundle pages using the bundleVars JSON, but seems to be more convoluted than just getting elements by id there.
 
 #TODO Sleep, check the file, if no new content found keep old file, else change content and send email. Add argparse functionality (daemon/writer  mode).
+
+def update_it(file_old, file_new):
+    #files_equal = False
+    files_equal = filecmp.cmp(file_old, file_new, shallow=True)
+    with open(file_old, "w+") as bundles_old, open(file_new, "r") as bundles_new:
+        new_content = bundles_new.read()
+        if files_equal:
+            print("The bundles are the same than the last time this program was run. No changes are to be made.")
+        else:
+            print("There are different bundles than last time. Writing...")
+            bundles_old.write(new_content)
+
+            print("All ok.")
+
+def clear_it():
+    with open ("bundles_new.txt", "w") as file:
+        file.write("")
 
 def get_json_from_api(url):
     request = requests.get(url)
@@ -80,11 +98,15 @@ def main():
         print_it(info,name,bundle_end)
         print("*"*75+"\n")
 
-        with open('bundles.txt', 'a') as file:
+        with open('bundles_new.txt', 'a') as file:
             file.write("*"*75+"\n"*5)
             write_it(file, info, name, bundle_end)
             file.write("*"*75)
             file.write("\n"*5)
+
+    update_it("bundles_old.txt", "bundles_new.txt")
+    clear_it()
+
 
 if __name__ == '__main__':
     main()
