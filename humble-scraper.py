@@ -7,7 +7,7 @@ import json
 import argparse
 
 #TODO Maybe scrape the bundle pages using the bundleVars JSON, but seems to be more convoluted than just getting elements by id there.
-
+#TODO Add unicode text support when writing file (cheeck SO)
 #TODO Sleep, send email. Add argparse functionality (daemon/writer  mode). Check if bundles_old exists before doing stuff
 
 def update_it(file_old, file_new):
