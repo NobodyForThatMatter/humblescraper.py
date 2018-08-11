@@ -5,10 +5,9 @@ import filecmp
 from bs4 import BeautifulSoup
 import json
 import argparse
+import sched # Add sched conds.
 
-#TODO Maybe scrape the bundle pages using the bundleVars JSON, but seems to be more convoluted than just getting elements by id there.
-#TODO Add unicode text support when writing file (cheeck SO)
-#TODO Sleep, send email. Add argparse functionality (daemon/writer  mode). Check if bundles_old exists before doing stuff
+#TODO Sched, send email. Check if bundles_old exists before doing stuff
 
 def update_it(file_old, file_new):
     #files_equal = False
@@ -62,17 +61,17 @@ def parse_bundles(url):
 
 def write_it(file, tier_list, name, bundle_end):
 
-    file.write("\nBUNDLE: "+ name)
+    file.write("\nBUNDLE: "+ name.encode("utf-8"))
     file.write("\nBUNDLE ENDS: " + bundle_end)
     for i in tier_list:
         file.write("\n")
         file.write("-"*75+"\n")
-        file.write("\tTier: " + i["Tier"] + "\n")
+        file.write("\tTier: " + i["Tier"].encode("utf-8") + "\n")
         file.write("="*75 + "\n")
         file.write("\n")
         file.write("\tProducts: "+"\n")
         for product in i["Products"]:
-            file.write("\t\t" + product + "\n")
+            file.write("\t\t" + product.encode("utf-8") + "\n")
 
 
 def print_it(tier_list, name, bundle_end):
@@ -109,4 +108,7 @@ def main():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--daemon", help="Runs constantly in the background.", action="store_true")
+    args = parser.parse_args()
     main()
